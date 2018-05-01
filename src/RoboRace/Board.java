@@ -41,43 +41,45 @@ public class Board implements XMLObject {
     }
 
     public void step(EventCounter counter, EventList events, Robot robot, Direction direction) {
-        Point point = robot.getLocation();
-        Location location = getLocation(point);
-        if (location.hasWall(direction)) {
-            events.add(new BumpEvent(counter, point, direction));
-            return;
-        }
-        int x, y;
+        Point location = robot.getLocation();
+        int x = location.x;
+        int y = location.y;
         switch (direction) {
             case North:
-                x = point.x;
-                y = point.y - 1;
-                break;
-            case East:
-                x = point.x + 1;
-                y = point.y;
+                y--;
                 break;
             case South:
-                x = point.x;
-                y = point.y + 1;
+                y++;
                 break;
             case West:
-                x = point.x - 1;
-                y = point.y;
+                x--;
                 break;
-            default:
-                x = point.x;
-                y = point.y;
+            case East:
+                x++;
                 break;
         }
-        if (x < 0 || x >= factory.getXSize() || y < 0 || y >= factory.getYSize() || getLocation(x, y).isPit()) {
+        if (factory.hasWall(location, direction)) {
+            events.add(new BumpEvent(counter, location, direction));
             return;
         }
-        Robot siblingRobot = robotAt(x, y);
-        if (siblingRobot != null) {
-            step(counter, events, siblingRobot, direction);
+        if (x < 0 || y < 0 || x >= factory.getXSize() || y >= factory.getYSize() || getLocation(x, y).isPit()) {
+            events.add(new DestroyedEvent(counter, x, y));
+            robot.destroyed();
+            return;
         }
-        else robot.setLocation(x, y);
+        if (robotAt(x, y) != null) {
+            // robot.move(direction);
+            step(counter, events, robotAt(x, y), direction);
+            if (robotAt(x, y) != null) {
+                events.add(new BumpEvent(counter, location, direction));
+            } else {
+                events.add(new MoveEvent(counter, location, direction));
+                robot.move(direction);
+            }
+            return;
+        }
+        events.add(new MoveEvent(counter, location, direction));
+        robot.move(direction);
     }
 
     public void revitalize() {

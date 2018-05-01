@@ -18,8 +18,12 @@ public class RoboRace {
 	    	} catch(Exception e) {};
 	};
 	String[] names = new String[nHuman];
+        Player[] players = new Player[nHuman];
 	for (int i=0; i<nHuman; i++) {
             names[i] = GameDialogs.showInputDialog("Player #" + (i+1),"Name of Player #" + (i+1) + ":");
-        };
+            players[i] = new Player();
+        }
+        GameMaster gm = new GameMaster(nHuman, names, players);
+        gm.run();
     }	   
 }
